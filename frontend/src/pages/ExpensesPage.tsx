@@ -1,0 +1,341 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DashboardShell } from '../components/DashboardShell';
+import { Card, CardContent, CardHeader } from '../components/Card';
+import { Button } from '../components/Button';
+import { FormInput } from '../components/FormInput';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { 
+  Receipt, 
+  Plus, 
+  Trash2, 
+  Filter, 
+  Download, 
+  Search,
+  Calendar,
+  Loader2
+} from 'lucide-react';
+import { cn, extractErrorMessage } from '../lib/utils';
+import { useAuthStore } from '../store/authStore';
+import { transactionService } from '../services/transactionService';
+import { startupService } from '../services/startupService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Skeleton } from '../components/Skeleton';
+
+const expenseSchema = z.object({
+  category: z.string().min(1, 'Category required'),
+  amount: z.string().min(1, 'Amount required'),
+  date: z.string(),
+  description: z.string().optional(),
+  currency: z.enum(['USD', 'INR']),
+});
+
+type ExpenseForm = z.infer<typeof expenseSchema>;
+
+export const ExpensesPage: React.FC = () => {
+  const [showForm, setShowForm] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch Startups to link the expense
+  const { data: startups = [] } = useQuery({
+    queryKey: ['startups'],
+    queryFn: () => startupService.getAll(),
+  });
+
+  const currencySymbol = startups[0]?.currency === 'INR' ? '₹' : '$';
+
+  const { control, handleSubmit, formState: { isSubmitting }, setValue } = useForm<ExpenseForm>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+      currency: startups[0]?.currency || 'USD'
+    }
+  });
+
+  // Fetch Expenses
+  const { data: expenses = [], isLoading } = useQuery({
+    queryKey: ['transactions', 'expense'],
+    queryFn: () => transactionService.getAll({ type: 'expense' }),
+  });
+
+  // Create Expense Mutation
+  const createMutation = useMutation({
+    mutationFn: (data: ExpenseForm) => {
+      if (startups.length === 0) throw new Error('No startup found to link expense.');
+      return transactionService.create({
+        ...data,
+        amount: parseFloat(data.amount),
+        type: 'expense',
+        startup_id: startups[0].id, // Default to first startup for now
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success('Expense recorded successfully!');
+      setShowForm(false);
+    },
+    onError: (error: any) => {
+      toast.error(extractErrorMessage(error, 'Failed to record expense.'));
+    }
+  });
+
+  const onSubmit = (data: ExpenseForm) => {
+    createMutation.mutate(data);
+  };
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  if (isLoading) {
+    return (
+      <DashboardShell title="Expenses" subtitle="Loading your financial data...">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-8">
+                <Skeleton className="w-32 h-3 mb-2" />
+                <Skeleton className="w-48 h-10 mb-4" />
+                <Skeleton className="w-24 h-4" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="w-48 h-6" />
+          </CardHeader>
+          <CardContent className="px-0">
+            <div className="divide-y divide-neutral-50 px-8">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="py-6 flex justify-between items-center">
+                  <div className="flex items-center gap-3 w-1/4">
+                    <Skeleton className="w-4 h-4 rounded-full" />
+                    <Skeleton className="w-24 h-4" />
+                  </div>
+                  <Skeleton className="w-32 h-4 w-1/4" />
+                  <Skeleton className="w-16 h-5 rounded-full w-1/6" />
+                  <Skeleton className="w-20 h-5" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </DashboardShell>
+    );
+  }
+
+  if (startups.length === 0) {
+    return (
+      <DashboardShell title="Expenses" subtitle="Track and categorize every outgoing transaction.">
+        <div className="flex flex-col items-center justify-center h-96 max-w-lg mx-auto text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-4">
+            <Receipt className="w-8 h-8" />
+          </div>
+          <h3 className="text-2xl font-bold text-neutral-900">No Startup Linked</h3>
+          <p className="text-sm text-neutral-500 leading-relaxed">
+            Please register your startup profile first before recording any expenses.
+          </p>
+          <Button onClick={() => window.location.href = '/startups'} className="mt-4">
+            Register Startup
+          </Button>
+        </div>
+      </DashboardShell>
+    );
+  }
+
+  return (
+    <DashboardShell
+      title="Expenses"
+      subtitle="Track and categorize every outgoing transaction for your startup."
+      action={
+        <div className="flex gap-3">
+          <Button variant="outline" size="sm">
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Expense
+          </Button>
+        </div>
+      }
+    >
+      {/* Financial Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <Card className="bg-neutral-900 text-white border-none relative overflow-hidden">
+          <CardContent className="p-8">
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Total Monthly Burn</p>
+            <p className="text-4xl font-bold tracking-tight">{currencySymbol}{totalExpenses.toLocaleString()}</p>
+            <div className="mt-6 flex items-center gap-2 text-xs font-bold text-neutral-400">
+              <span className="text-green-400">Stable</span> from last month
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white">
+          <CardContent className="p-8">
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Active Startup</p>
+            <p className="text-2xl font-bold text-neutral-900">{startups[0]?.name || 'Not Linked'}</p>
+            <p className="text-xs text-neutral-500 mt-2">Primary funding source</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white">
+          <CardContent className="p-8">
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Transaction Count</p>
+            <p className="text-2xl font-bold text-neutral-900">{expenses.length}</p>
+            <p className="text-xs text-neutral-500 mt-2">Verified in Ledger</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-12"
+          >
+            <Card className="p-8 max-w-2xl shadow-xl shadow-neutral-100">
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-neutral-900">Record Expense</h3>
+                <p className="text-sm text-neutral-500 mt-1">Enter the details of the transaction.</p>
+              </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormInput
+                    control={control}
+                    name="category"
+                    label="Category"
+                    placeholder="e.g. Salaries"
+                  />
+                  <FormInput
+                    control={control}
+                    name="amount"
+                    label="Amount"
+                    placeholder="0.00"
+                    type="number"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest">Currency</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {['USD', 'INR'].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setValue('currency', c as 'USD' | 'INR')}
+                          className={cn(
+                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200",
+                            control._formValues.currency === c 
+                              ? "bg-neutral-900 border-neutral-900 text-white shadow-lg" 
+                              : "bg-neutral-50 border-neutral-100 text-neutral-500 hover:border-neutral-200"
+                          )}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <FormInput
+                    control={control}
+                    name="date"
+                    label="Date"
+                    type="date"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormInput
+                    control={control}
+                    name="description"
+                    label="Notes"
+                    placeholder="Brief description"
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <Button type="submit" isLoading={createMutation.isPending} className="flex-1">
+                    Record Transaction
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Transactions Table */}
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-neutral-50/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-lg font-bold text-neutral-900">Transaction History</h3>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                <input 
+                  type="text" 
+                  placeholder="Filter by description..." 
+                  className="pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/5 focus:border-neutral-300 transition-all w-64"
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="px-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-neutral-50">
+                  <th className="px-8 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Date</th>
+                  <th className="px-8 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Description</th>
+                  <th className="px-8 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest">Category</th>
+                  <th className="px-8 py-4 text-xs font-bold text-neutral-400 uppercase tracking-widest text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-50">
+                {expenses.map((expense, i) => (
+                  <motion.tr 
+                    key={expense.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="group hover:bg-neutral-50/50 transition-colors"
+                  >
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3 text-neutral-600">
+                        <Calendar className="w-4 h-4 text-neutral-400" />
+                        <span className="text-sm font-medium">{expense.date}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <p className="text-sm font-semibold text-neutral-900">{expense.description || 'No description'}</p>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className="px-2 py-1 bg-neutral-100 text-neutral-600 rounded text-[10px] font-bold uppercase tracking-tight">
+                        {expense.category}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <span className="text-sm font-bold text-neutral-900">
+                        -{expense.currency === 'INR' ? '₹' : '$'}{Number(expense.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </span>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </DashboardShell>
+  );
+};
