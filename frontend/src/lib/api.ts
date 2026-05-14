@@ -24,19 +24,18 @@ export const apiClient = axios.create({
  * Initialize CSRF protection for Sanctum
  */
 export const initCsrf = async () => {
-  try {
     console.log('Initializing CSRF protection...');
-    // We use apiClient but override the URL to hit the root sanctum endpoint
-    const response = await apiClient.get(`${ROOT_URL}/sanctum/csrf-cookie`, { 
-      baseURL: '', // Override baseURL to use absolute ROOT_URL
-    });
-    console.log('CSRF initialization successful');
-    return response;
-  } catch (error) {
-    console.error('CSRF initialization failed:', error);
-    throw error;
-  }
-};
+    try {
+      // Sanctum expects this at /sanctum/csrf-cookie, not /api/sanctum/csrf-cookie
+      await apiClient.get('/sanctum/csrf-cookie', {
+        baseURL: window.location.origin
+      });
+      console.log('CSRF initialization successful');
+    } catch (error) {
+      console.error('CSRF initialization failed:', error);
+      throw error;
+    }
+  };
 
 // Add request interceptor to handle auth errors
 apiClient.interceptors.response.use(
