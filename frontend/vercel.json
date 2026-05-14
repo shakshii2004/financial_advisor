@@ -9,7 +9,7 @@
       "destination": "https://founderflow.onrender.com/sanctum/:path*"
     },
     {
-      "source": "/(?!api|sanctum)(.*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
