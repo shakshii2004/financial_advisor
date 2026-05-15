@@ -197,26 +197,39 @@ class InvestmentController extends Controller
     // For Founders/Investors: Update the status of a deal pipeline item
     public function updateInterestStatus(Request $request)
     {
-        $request->validate([
-            'interest_id' => 'required|exists:investor_interests,id',
-            'status' => 'required|in:interested,discovery,funding,closed,declined'
-        ]);
+        try {
+            $request->validate([
+                'interest_id' => 'required|exists:investor_interests,id',
+                'status' => 'required|string'
+            ]);
 
-        $interest = \App\Models\InvestorInterest::findOrFail($request->interest_id);
-        $startup = $interest->startup;
+            $interest = \App\Models\InvestorInterest::with('startup')->findOrFail($request->interest_id);
+            $startup = $interest->startup;
 
-        // Security: Only the founder of that startup or an admin can update the status
-        if ($startup->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            // Guard against orphaned interests with no startup
+            if (!$startup) {
+                return response()->json(['message' => 'Associated startup not found.'], 404);
+            }
+
+            // Security: Only the founder of that startup or an admin can update the status
+            $user = auth()->user();
+            if ($startup->user_id !== $user->id && $user->role !== 'admin') {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
+
+            $interest->status = $request->status;
+            $interest->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pipeline status updated successfully.',
+                'data' => $interest->fresh(['startup', 'user'])
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update status.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $interest->status = $request->status;
-        $interest->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Pipeline status updated successfully.',
-            'data' => $interest
-        ]);
     }
 }
