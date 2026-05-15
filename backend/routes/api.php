@@ -18,20 +18,6 @@ Route::prefix('auth')->group(function () {
         ->name('verification.verify');
 });
 
-Route::get('migrate-status', function () {
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('investor_interests')) {
-            // Postgres syntax to change column type
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE investor_interests ALTER COLUMN status TYPE VARCHAR(255)");
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE investor_interests ALTER COLUMN status SET DEFAULT 'interested'");
-            return 'Success: Status column converted to VARCHAR';
-        }
-        return 'Error: Table investor_interests not found';
-    } catch (\Exception $e) {
-        return $e->getMessage();
-    }
-});
-
 Route::get('migrate-currency', function () {
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('startups')) {
