@@ -18,6 +18,15 @@ Route::prefix('auth')->group(function () {
         ->name('verification.verify');
 });
 
+Route::get('drop-status-constraint', function () {
+    try {
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE investor_interests DROP CONSTRAINT IF EXISTS investor_interests_status_check');
+        return 'Success: Check constraint dropped. Status column is now fully flexible.';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage();
+    }
+});
+
 Route::get('migrate-currency', function () {
     try {
         if (\Illuminate\Support\Facades\Schema::hasTable('startups')) {
