@@ -52,16 +52,16 @@ export const LandingPage: React.FC = () => {
     <PublicLayout>
       {/* Navigation - Minimal for Landing */}
       <nav className="h-16 md:h-20 px-6 md:px-8 lg:px-24 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-neutral-100/50">
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
           <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center shrink-0">
             <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
           </div>
           <span className="text-lg md:text-xl font-bold tracking-tight text-neutral-900 hidden min-[400px]:block">FounderFlow</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Features</a>
-          <a href="#integrations" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Integrations</a>
-          <a href="#pricing" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">Pricing</a>
+          <a href="#features" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer">Features</a>
+          <a href="#integrations" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer">Integrations</a>
+          <a href="#pricing" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer">Pricing</a>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="xs" className="md:hidden" onClick={() => window.location.href = '/login'}>Log in</Button>
@@ -471,7 +471,7 @@ export const LandingPage: React.FC = () => {
                 <ul className="space-y-4">
                   {col.links.map((link, j) => (
                     <li key={j}>
-                      <a href="#" className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
+                      <a href="#" className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer">
                         {link}
                       </a>
                     </li>
@@ -483,9 +483,9 @@ export const LandingPage: React.FC = () => {
           <div className="pt-8 border-t border-neutral-50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-neutral-400">
             <p>© 2026 FounderFlow Inc. All rights reserved.</p>
             <div className="flex gap-8">
-              <a href="#" className="hover:text-neutral-900">Twitter</a>
-              <a href="#" className="hover:text-neutral-900">LinkedIn</a>
-              <a href="#" className="hover:text-neutral-900">GitHub</a>
+              <a href="#" className="hover:text-neutral-900 cursor-pointer">Twitter</a>
+              <a href="#" className="hover:text-neutral-900 cursor-pointer">LinkedIn</a>
+              <a href="#" className="hover:text-neutral-900 cursor-pointer">GitHub</a>
             </div>
           </div>
         </div>

@@ -40,12 +40,30 @@ export const FounderDashboard: React.FC = () => {
     enabled: !!startupId,
   });
 
+  const [timeFilter, setTimeFilter] = React.useState<'all' | 'month'>('all');
+  
   const { data: transactions = [], isLoading: isTxLoading } = useQuery({
     queryKey: ['transactions', startupId],
-    queryFn: () => transactionService.getAll(),
+    queryFn: () => transactionService.getAll({ startup_id: startupId }),
+    enabled: !!startupId,
   });
 
   const isLoading = isSummaryLoading || isTxLoading;
+
+  // Filter transactions based on selected time period
+  const filteredTransactions = React.useMemo(() => {
+    if (timeFilter === 'all') return transactions;
+    
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return transactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= startOfMonth;
+    });
+  }, [transactions, timeFilter]);
+
+  const recentTransactions = filteredTransactions.slice(0, 5);
 
   const stats = summary ? [
     {
@@ -82,7 +100,6 @@ export const FounderDashboard: React.FC = () => {
     },
   ] : [];
 
-  const recentTransactions = transactions.slice(0, 5);
 
   if (isLoading) {
     return (
@@ -184,8 +201,22 @@ export const FounderDashboard: React.FC = () => {
               subtitle="Latest revenue and expenses across all linked accounts."
             >
               <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="secondary" className="text-xs h-8">All Time</Button>
-                <Button size="sm" variant="ghost" className="text-xs h-8">This Month</Button>
+                <Button 
+                  size="sm" 
+                  variant={timeFilter === 'all' ? 'secondary' : 'ghost'} 
+                  className="text-xs h-8"
+                  onClick={() => setTimeFilter('all')}
+                >
+                  All Time
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant={timeFilter === 'month' ? 'secondary' : 'ghost'} 
+                  className="text-xs h-8"
+                  onClick={() => setTimeFilter('month')}
+                >
+                  This Month
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="px-0">
@@ -265,7 +296,7 @@ export const FounderDashboard: React.FC = () => {
               </div>
             </CardContent>
             <div className="p-4 border-t border-neutral-50 flex justify-center">
-              <Button variant="ghost" size="sm" className="text-xs font-bold">
+              <Button variant="ghost" size="sm" className="text-xs font-bold" onClick={() => window.location.href = '/expenses'}>
                 View All Transactions
                 <ArrowRight className="w-3 h-3 ml-2" />
               </Button>
@@ -308,15 +339,15 @@ export const FounderDashboard: React.FC = () => {
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest">Next Funding Goal</p>
-                    <p className="text-lg font-bold">18-Month Runway Target</p>
+                    <p className="text-[10px] text-neutral-400 font-black uppercase tracking-[0.2em]">Next Funding Goal</p>
+                    <p className="text-lg font-bold text-white tracking-tight">18-Month Runway Target</p>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-tighter">
-                    <span className="text-neutral-400">Preparation Progress</span>
-                    <span>{Math.min(100, Math.round((summary.runway_months / 18) * 100))}%</span>
+                    <span className="text-neutral-300">Preparation Progress</span>
+                    <span className="text-white">{Math.min(100, Math.round((summary.runway_months / 18) * 100))}%</span>
                   </div>
                   <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <motion.div 
@@ -328,7 +359,7 @@ export const FounderDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <p className="text-xs text-neutral-400 leading-relaxed">
+                <p className="text-xs text-neutral-200 leading-relaxed font-medium">
                   {summary.runway_months > 12 
                     ? "Your financials are healthy. We recommend initiating investor outreach in 60 days."
                     : "Your runway is tightening. Consider optimizing burn or preparing for a bridge round."}

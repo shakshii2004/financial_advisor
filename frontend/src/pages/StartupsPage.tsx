@@ -184,7 +184,7 @@ export const StartupsPage: React.FC = () => {
                           type="button"
                           onClick={() => setValue('currency', c as 'USD' | 'INR')}
                           className={cn(
-                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200",
+                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer",
                             control._formValues.currency === c 
                               ? "bg-neutral-900 border-neutral-900 text-white shadow-lg" 
                               : "bg-neutral-50 border-neutral-100 text-neutral-500 hover:border-neutral-200"
@@ -209,7 +209,7 @@ export const StartupsPage: React.FC = () => {
                           setValue('stage', s);
                         }}
                         className={cn(
-                          "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200",
+                          "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer",
                           selectedStage === s 
                             ? "bg-neutral-900 border-neutral-900 text-white shadow-lg" 
                             : "bg-neutral-50 border-neutral-100 text-neutral-500 hover:border-neutral-200"
@@ -341,7 +341,7 @@ export const StartupsPage: React.FC = () => {
                       href={startup.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm font-bold text-neutral-900 hover:opacity-70 transition-all"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-neutral-900 hover:opacity-70 transition-all cursor-pointer"
                     >
                       <Globe className="w-4 h-4" />
                       Visit Website
@@ -360,7 +360,7 @@ export const StartupsPage: React.FC = () => {
             </div>
             <p className="text-xs font-medium text-neutral-500">
               You have reached your startup limit. Founders can manage one primary startup. 
-              <button className="ml-2 font-bold text-neutral-900 hover:underline">Contact Support</button> to upgrade.
+              <button className="ml-2 font-bold text-neutral-900 hover:underline cursor-pointer">Contact Support</button> to upgrade.
             </p>
           </div>
         )}
@@ -368,7 +368,7 @@ export const StartupsPage: React.FC = () => {
         {!hasStartup && !showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full h-full min-h-[300px] rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 hover:bg-neutral-50 hover:border-neutral-300 transition-all group flex flex-col items-center justify-center p-8 gap-4"
+            className="w-full h-full min-h-[300px] rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/50 hover:bg-neutral-50 hover:border-neutral-300 transition-all group flex flex-col items-center justify-center p-8 gap-4 cursor-pointer"
           >
             <div className="w-12 h-12 rounded-full bg-white border border-neutral-100 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
               <Plus className="w-6 h-6 text-neutral-400 group-hover:text-neutral-900" />

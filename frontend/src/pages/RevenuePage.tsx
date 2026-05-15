@@ -46,13 +46,15 @@ export const RevenuePage: React.FC = () => {
 
   const currencySymbol = startups[0]?.currency === 'INR' ? '₹' : '$';
 
-  const { control, handleSubmit, formState: { isSubmitting }, setValue } = useForm<RevenueForm>({
+  const { control, handleSubmit, formState: { isSubmitting }, setValue, watch } = useForm<RevenueForm>({
     resolver: zodResolver(revenueSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       currency: startups[0]?.currency || 'USD'
     }
   });
+
+  const selectedCurrency = watch('currency');
 
   // Fetch Revenue
   const { data: revenues = [], isLoading } = useQuery({
@@ -86,6 +88,38 @@ export const RevenuePage: React.FC = () => {
   };
 
   const totalRevenue = revenues.reduce((sum, r) => sum + Number(r.amount), 0);
+
+  const handleExportCSV = () => {
+    if (revenues.length === 0) {
+      toast.error('No revenue data to export');
+      return;
+    }
+
+    const headers = ['Date', 'Source', 'Amount', 'Currency', 'Description'];
+    const rows = revenues.map(r => [
+      r.date,
+      `"${r.category.replace(/"/g, '""')}"`,
+      r.amount,
+      r.currency,
+      `"${(r.description || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `revenue_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Revenue data exported');
+  };
 
   if (isLoading) {
     return (
@@ -151,24 +185,27 @@ export const RevenuePage: React.FC = () => {
       title="Revenue"
       subtitle="Track your startup's income streams, MRR, and growth metrics."
       action={
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Export Data
           </Button>
-          <Button onClick={() => setShowForm(!showForm)} size="sm">
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
-            Add Revenue
+            {showForm ? 'Close Form' : 'Add Revenue'}
           </Button>
         </div>
       }
     >
       {/* Revenue Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="bg-neutral-900 text-white border-none relative overflow-hidden">
+        <Card 
+          onClick={() => window.location.href = '/analytics'}
+          className="bg-neutral-900 text-white border-none relative overflow-hidden cursor-pointer group"
+        >
           <CardContent className="p-8">
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Total Revenue (Ledger)</p>
-            <p className="text-4xl font-bold tracking-tight">{currencySymbol}{totalRevenue.toLocaleString()}</p>
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Total Revenue (Ledger)</p>
+            <p className="text-4xl font-bold tracking-tight text-white">{currencySymbol}{totalRevenue.toLocaleString()}</p>
             <div className="mt-6 flex items-center gap-2 text-xs font-bold text-green-400">
               <TrendingUp className="w-4 h-4" />
               <span>Tracking live growth</span>
@@ -176,15 +213,18 @@ export const RevenuePage: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          onClick={() => window.location.href = '/startups'}
+          className="bg-white cursor-pointer group"
+        >
           <CardContent className="p-8">
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Active Startup</p>
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 group-hover:text-neutral-900 transition-colors">Active Startup</p>
             <p className="text-2xl font-bold text-neutral-900">{startups[0]?.name || 'Not Linked'}</p>
             <p className="text-xs text-neutral-500 mt-2">Primary entity</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white">
           <CardContent className="p-8">
             <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Total Transactions</p>
             <p className="text-2xl font-bold text-neutral-900">{revenues.length}</p>
@@ -202,9 +242,14 @@ export const RevenuePage: React.FC = () => {
             className="mb-12"
           >
             <Card className="p-8 max-w-2xl shadow-xl shadow-neutral-100">
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-neutral-900">Record Revenue</h3>
-                <p className="text-sm text-neutral-500 mt-1">Add a new income source to your ledger.</p>
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-neutral-900">Record Revenue</h3>
+                  <p className="text-sm text-neutral-500 mt-1">Add a new income source to your ledger.</p>
+                </div>
+                <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-white">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
               </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -220,6 +265,8 @@ export const RevenuePage: React.FC = () => {
                     label="Amount"
                     placeholder="0.00"
                     type="number"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -232,8 +279,8 @@ export const RevenuePage: React.FC = () => {
                           type="button"
                           onClick={() => setValue('currency', c as 'USD' | 'INR')}
                           className={cn(
-                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200",
-                            control._formValues.currency === c 
+                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer",
+                            selectedCurrency === c 
                               ? "bg-neutral-900 border-neutral-900 text-white shadow-lg" 
                               : "bg-neutral-50 border-neutral-100 text-neutral-500 hover:border-neutral-200"
                           )}

@@ -57,7 +57,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileHover={!isDisabled ? { y: -1 } : {}}
         whileTap={!isDisabled ? { scale: 0.98, y: 0 } : {}}
         className={cn(
-          'inline-flex items-center justify-center font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2',
+          'inline-flex items-center justify-center font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 whitespace-nowrap cursor-pointer',
           variants[variant],
           sizes[size],
           isDisabled && 'opacity-50 cursor-not-allowed grayscale-[0.5]',

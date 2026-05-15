@@ -47,13 +47,15 @@ export const ExpensesPage: React.FC = () => {
 
   const currencySymbol = startups[0]?.currency === 'INR' ? '₹' : '$';
 
-  const { control, handleSubmit, formState: { isSubmitting }, setValue } = useForm<ExpenseForm>({
+  const { control, handleSubmit, formState: { isSubmitting }, setValue, watch } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
       currency: startups[0]?.currency || 'USD'
     }
   });
+
+  const selectedCurrency = watch('currency');
 
   // Fetch Expenses
   const { data: expenses = [], isLoading } = useQuery({
@@ -87,6 +89,38 @@ export const ExpensesPage: React.FC = () => {
   };
 
   const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
+  const handleExportCSV = () => {
+    if (expenses.length === 0) {
+      toast.error('No expenses to export');
+      return;
+    }
+
+    const headers = ['Date', 'Description', 'Category', 'Amount', 'Currency'];
+    const rows = expenses.map(e => [
+      e.date,
+      `"${(e.description || '').replace(/"/g, '""')}"`,
+      e.category,
+      e.amount,
+      e.currency
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('CSV exported successfully');
+  };
 
   if (isLoading) {
     return (
@@ -150,33 +184,39 @@ export const ExpensesPage: React.FC = () => {
       title="Expenses"
       subtitle="Track and categorize every outgoing transaction for your startup."
       action={
-        <div className="flex gap-3">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Button onClick={() => setShowForm(!showForm)} size="sm">
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
-            Add Expense
+            {showForm ? 'Close Form' : 'Add Expense'}
           </Button>
         </div>
       }
     >
       {/* Financial Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="bg-neutral-900 text-white border-none relative overflow-hidden">
+        <Card 
+          onClick={() => window.location.href = '/analytics'}
+          className="bg-neutral-900 text-white border-none relative overflow-hidden cursor-pointer group"
+        >
           <CardContent className="p-8">
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Total Monthly Burn</p>
-            <p className="text-4xl font-bold tracking-tight">{currencySymbol}{totalExpenses.toLocaleString()}</p>
-            <div className="mt-6 flex items-center gap-2 text-xs font-bold text-neutral-400">
-              <span className="text-green-400">Stable</span> from last month
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 group-hover:text-white transition-colors">Total Monthly Burn</p>
+            <p className="text-4xl font-bold tracking-tight text-white">{currencySymbol}{totalExpenses.toLocaleString()}</p>
+            <div className="mt-6 flex items-center gap-2 text-xs font-bold text-neutral-400 group-hover:text-green-400 transition-colors">
+              <span className="text-green-400 group-hover:text-white">Stable</span> from last month
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white">
+        <Card 
+          onClick={() => window.location.href = '/startups'}
+          className="bg-white cursor-pointer group"
+        >
           <CardContent className="p-8">
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">Active Startup</p>
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2 group-hover:text-neutral-900 transition-colors">Active Startup</p>
             <p className="text-2xl font-bold text-neutral-900">{startups[0]?.name || 'Not Linked'}</p>
             <p className="text-xs text-neutral-500 mt-2">Primary funding source</p>
           </CardContent>
@@ -200,9 +240,14 @@ export const ExpensesPage: React.FC = () => {
             className="mb-12"
           >
             <Card className="p-8 max-w-2xl shadow-xl shadow-neutral-100">
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-neutral-900">Record Expense</h3>
-                <p className="text-sm text-neutral-500 mt-1">Enter the details of the transaction.</p>
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-neutral-900">Record Expense</h3>
+                  <p className="text-sm text-neutral-500 mt-1">Enter the details of the transaction.</p>
+                </div>
+                <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-white">
+                  <Receipt className="w-6 h-6" />
+                </div>
               </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -218,6 +263,8 @@ export const ExpensesPage: React.FC = () => {
                     label="Amount"
                     placeholder="0.00"
                     type="number"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -230,8 +277,8 @@ export const ExpensesPage: React.FC = () => {
                           type="button"
                           onClick={() => setValue('currency', c as 'USD' | 'INR')}
                           className={cn(
-                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200",
-                            control._formValues.currency === c 
+                            "px-4 py-3 rounded-xl border text-xs font-bold transition-all duration-200 cursor-pointer",
+                            selectedCurrency === c 
                               ? "bg-neutral-900 border-neutral-900 text-white shadow-lg" 
                               : "bg-neutral-50 border-neutral-100 text-neutral-500 hover:border-neutral-200"
                           )}

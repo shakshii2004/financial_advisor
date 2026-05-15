@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <div className="flex flex-col h-full">
         {/* Brand Header */}
         <div className="h-20 flex items-center justify-between px-8 border-b border-neutral-50">
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center">
               <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
             </div>
@@ -79,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </Link>
           <button 
             onClick={onClose}
-            className="lg:hidden p-2 text-neutral-400 hover:text-neutral-900 transition-colors"
+            className="lg:hidden p-2 text-neutral-400 hover:text-neutral-900 transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold',
               isActive 
                 ? 'bg-neutral-900 text-white shadow-md shadow-neutral-200' 
-                : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900'
+                : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900 cursor-pointer'
             )}
           >
             <LifeBuoy className="w-4 h-4" />

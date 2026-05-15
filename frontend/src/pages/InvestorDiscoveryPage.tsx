@@ -73,8 +73,8 @@ export const InvestorDiscoveryPage: React.FC = () => {
               onClick={() => setSelectedIndustry(industry)}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedIndustry === industry 
-                  ? 'bg-neutral-900 text-white shadow-md shadow-neutral-200' 
-                  : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                  ? 'bg-neutral-900 text-white shadow-md shadow-neutral-200 cursor-default' 
+                  : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 cursor-pointer'
               }`}
             >
               {industry}
@@ -127,13 +127,13 @@ export const InvestorDiscoveryPage: React.FC = () => {
                     <div className="pt-6 border-t border-neutral-100 flex items-center justify-between mt-auto">
                       <button 
                         onClick={() => handleExpressInterest(startup.id)}
-                        className="text-sm font-bold text-neutral-900 flex items-center gap-2 hover:opacity-70 transition-opacity"
+                        className="text-sm font-bold text-neutral-900 flex items-center gap-2 hover:opacity-70 transition-opacity cursor-pointer"
                       >
                         <Sparkles className="w-4 h-4 text-indigo-600" />
                         Express Interest
                       </button>
                       
-                      <button className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:bg-neutral-900 group-hover:text-white transition-all">
+                      <button className="w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:bg-neutral-900 group-hover:text-white transition-all cursor-pointer">
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>

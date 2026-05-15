@@ -116,8 +116,8 @@ export const RegisterPage: React.FC = () => {
                     className={cn(
                       'p-4 rounded-2xl border text-left transition-all duration-200',
                       role === 'founder'
-                        ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg'
-                        : 'border-neutral-100 bg-neutral-50 text-neutral-600 hover:border-neutral-200'
+                        ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg cursor-default'
+                        : 'border-neutral-100 bg-neutral-50 text-neutral-600 hover:border-neutral-200 cursor-pointer'
                     )}
                   >
                     <span className="block font-bold">Founder</span>
@@ -131,8 +131,8 @@ export const RegisterPage: React.FC = () => {
                     className={cn(
                       'p-4 rounded-2xl border text-left transition-all duration-200',
                       role === 'investor'
-                        ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg'
-                        : 'border-neutral-100 bg-neutral-50 text-neutral-600 hover:border-neutral-200'
+                        ? 'border-neutral-900 bg-neutral-900 text-white shadow-lg cursor-default'
+                        : 'border-neutral-100 bg-neutral-50 text-neutral-600 hover:border-neutral-200 cursor-pointer'
                     )}
                   >
                     <span className="block font-bold">Investor</span>
@@ -172,7 +172,7 @@ export const RegisterPage: React.FC = () => {
                 <div className="flex items-start gap-3">
                   <input type="checkbox" required className="mt-1 w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900" />
                   <p className="text-xs text-neutral-500 leading-relaxed">
-                    By signing up, you agree to our <a href="#" className="font-bold text-neutral-900">Terms of Service</a> and <a href="#" className="font-bold text-neutral-900">Privacy Policy</a>.
+                    By signing up, you agree to our <a href="#" className="font-bold text-neutral-900 cursor-pointer">Terms of Service</a> and <a href="#" className="font-bold text-neutral-900 cursor-pointer">Privacy Policy</a>.
                   </p>
                 </div>
 
@@ -188,7 +188,7 @@ export const RegisterPage: React.FC = () => {
 
               <p className="text-center text-sm text-neutral-500 mt-8">
                 Already have an account?{' '}
-                <a href="/login" className="font-bold text-neutral-900 hover:underline">
+                <a href="/login" className="font-bold text-neutral-900 hover:underline cursor-pointer">
                   Log in here
                 </a>
               </p>

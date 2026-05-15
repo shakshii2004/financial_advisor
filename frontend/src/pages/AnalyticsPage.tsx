@@ -7,6 +7,8 @@ import { startupService } from '../services/startupService';
 
 import { DashboardShell } from '../components/DashboardShell';
 import { Card, CardContent, CardHeader } from '../components/Card';
+import { Button } from '../components/Button';
+import { transactionService } from '../services/transactionService';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -29,6 +31,7 @@ export const AnalyticsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState('USD');
   const [hasStartup, setHasStartup] = useState(true);
+  const [revenueMix, setRevenueMix] = useState<{ label: string, value: number, color: string }[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,13 +40,39 @@ export const AnalyticsPage: React.FC = () => {
         if (startups.length > 0) {
           setHasStartup(true);
           const startupId = startups[0].id;
-          const [summaryData, chart] = await Promise.all([
+          const [summaryData, chart, transactions] = await Promise.all([
             analyticsService.getSummary(startupId),
-            analyticsService.getChartData(startupId)
+            analyticsService.getChartData(startupId),
+            transactionService.getAll({ startup_id: startupId, type: 'revenue' })
           ]);
           setSummary(summaryData);
           setChartData(chart);
           setCurrency(startups[0].currency || 'USD');
+
+          // Calculate Revenue Mix
+          if (transactions.length > 0) {
+            const totalsByCategory: Record<string, number> = {};
+            let totalAmount = 0;
+            
+            transactions.forEach(tx => {
+              const amount = Number(tx.amount);
+              totalsByCategory[tx.category] = (totalsByCategory[tx.category] || 0) + amount;
+              totalAmount += amount;
+            });
+
+            const mix = Object.entries(totalsByCategory)
+              .map(([label, amount]) => ({
+                label,
+                value: Math.round((amount / totalAmount) * 100),
+                color: 'bg-neutral-900' // We can rotate colors or just use consistent neutral shades
+              }))
+              .sort((a, b) => b.value - a.value)
+              .slice(0, 5); // Top 5 categories
+
+            // Apply different shades for visual distinction
+            const shades = ['bg-neutral-900', 'bg-neutral-600', 'bg-neutral-400', 'bg-neutral-200', 'bg-neutral-100'];
+            setRevenueMix(mix.map((item, i) => ({ ...item, color: shades[i % shades.length] })));
+          }
         } else {
           setHasStartup(false);
         }
@@ -188,34 +217,48 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="h-[400px] flex items-end justify-between px-10 pb-12 gap-4">
-              {chartData.map((data, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end group">
-                  <div className="w-full flex items-end gap-1.5 h-[300px]">
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      animate={{ height: `${Math.max(5, (data.revenue / Math.max(...chartData.map(d => Math.max(d.revenue, d.expense, 1)))) * 100)}%` }}
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                      className="flex-1 bg-neutral-900 rounded-t-lg relative"
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                        {currencySymbol}{data.revenue}
-                      </div>
-                    </motion.div>
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      animate={{ height: `${Math.max(5, (data.expense / Math.max(...chartData.map(d => Math.max(d.revenue, d.expense, 1)))) * 100)}%` }}
-                      transition={{ duration: 1, delay: 0.2 + i * 0.1 }}
-                      className="flex-1 bg-neutral-200 rounded-t-lg relative"
-                    >
-                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-200 text-neutral-900 text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                        {currencySymbol}{data.expense}
-                      </div>
-                    </motion.div>
+            <CardContent className="h-[450px] overflow-x-auto no-scrollbar relative pt-16">
+              {chartData.every(d => d.revenue === 0 && d.expense === 0) && (
+                <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px]">
+                  <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-4">
+                    <Activity className="w-8 h-8" />
                   </div>
-                  <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{data.month}</span>
+                  <h4 className="text-lg font-bold text-neutral-900">No transactions found</h4>
+                  <p className="text-sm text-neutral-500 mb-6">Record your first revenue or expense to see insights.</p>
+                  <Button size="sm" onClick={() => window.location.href = '/expenses'}>
+                    Record Transaction
+                  </Button>
                 </div>
-              ))}
+              )}
+              <div className="h-full flex items-end justify-between px-10 pb-12 gap-4 min-w-[600px] lg:min-w-0">
+                {chartData.map((data, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end group">
+                    <div className="w-full flex items-end gap-1.5 h-[280px]">
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${Math.max(5, (data.revenue / Math.max(...chartData.map(d => Math.max(d.revenue, d.expense, 1)))) * 100)}%` }}
+                        transition={{ duration: 1, delay: i * 0.1 }}
+                        className="flex-1 bg-neutral-900 rounded-t-lg relative"
+                      >
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-20">
+                          {currencySymbol}{data.revenue}
+                        </div>
+                      </motion.div>
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${Math.max(5, (data.expense / Math.max(...chartData.map(d => Math.max(d.revenue, d.expense, 1)))) * 100)}%` }}
+                        transition={{ duration: 1, delay: 0.2 + i * 0.1 }}
+                        className="flex-1 bg-neutral-200 rounded-t-lg relative"
+                      >
+                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-neutral-200 text-neutral-900 text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-20">
+                          {currencySymbol}{data.expense}
+                        </div>
+                      </motion.div>
+                    </div>
+                    <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">{data.month}</span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -224,50 +267,39 @@ export const AnalyticsPage: React.FC = () => {
         <div className="space-y-8">
           {/* Revenue Breakdown */}
           <Card>
-            <CardHeader title="Revenue Mix" />
+            <CardHeader title="Revenue Mix" subtitle="Distribution of income sources by category." />
             <CardContent className="p-8 space-y-6">
-              {[
-                { label: 'SaaS Subscriptions', value: 75, color: 'bg-neutral-900' },
-                { label: 'Professional Services', value: 15, color: 'bg-neutral-400' },
-                { label: 'API Usage', value: 10, color: 'bg-neutral-200' },
-              ].map((item, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
-                    <span className="text-neutral-500">{item.label}</span>
-                    <span className="text-neutral-900">{item.value}%</span>
+              {revenueMix.length > 0 ? (
+                revenueMix.map((item, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
+                      <span className="text-neutral-500">{item.label}</span>
+                      <span className="text-neutral-900">{item.value}%</span>
+                    </div>
+                    <div className="h-2 bg-neutral-50 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${item.value}%` }}
+                        transition={{ duration: 1, delay: 0.5 + i * 0.1 }}
+                        className={cn("h-full rounded-full", item.color)}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-neutral-50 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${item.value}%` }}
-                      transition={{ duration: 1, delay: 0.5 + i * 0.1 }}
-                      className={cn("h-full rounded-full", item.color)}
-                    />
-                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">No revenue data</p>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
 
-          {/* AI Insights Card */}
-          <Card className="bg-indigo-600 text-white border-none">
-            <CardContent className="p-8 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Info className="w-5 h-5" />
-                </div>
-                <p className="text-sm font-bold uppercase tracking-widest">Efficiency Insight</p>
-              </div>
-              <p className="text-lg font-medium leading-snug">
-                "Your LTV/CAC ratio has improved by 12% this month due to optimized referral channels."
+          {/* Minimalist Quote Card */}
+          <Card className="bg-neutral-900 text-white border-none relative overflow-hidden group">
+            <CardContent className="p-10 flex flex-col justify-center items-center text-center">
+              <p className="text-xl md:text-2xl font-medium leading-relaxed tracking-tight text-white">
+                "The best way to predict the future is to <span className="text-indigo-300 italic">create it</span>."
               </p>
-              <div className="pt-4 flex items-center gap-4 border-t border-white/10">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full border-2 border-indigo-600 bg-white/20" />
-                  <div className="w-8 h-8 rounded-full border-2 border-indigo-600 bg-white/20" />
-                </div>
-                <p className="text-xs text-indigo-100">Recommended by FinAI</p>
-              </div>
             </CardContent>
           </Card>
         </div>

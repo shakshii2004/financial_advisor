@@ -60,8 +60,14 @@ export const FounderInterestPage: React.FC = () => {
     }
   };
 
+  const handleMessageInvestor = (investorEmail: string, startupName: string) => {
+    const subject = encodeURIComponent(`FounderFlow: Regarding your interest in ${startupName}`);
+    const body = encodeURIComponent(`Hi,\n\nI saw your interest in ${startupName} on FounderFlow. I'd love to connect and share more about our progress.\n\nBest regards,`);
+    window.location.href = `mailto:${investorEmail}?subject=${subject}&body=${body}`;
+  };
+
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 px-4 md:px-0">
       <div>
         <h1 className="text-4xl font-bold text-neutral-900 tracking-tight mb-2">Investor Interests</h1>
         <p className="text-neutral-500">Manage incoming requests from potential investors and VCs.</p>
@@ -70,7 +76,7 @@ export const FounderInterestPage: React.FC = () => {
       <div className="grid gap-6">
         {isLoading ? (
           [1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-neutral-50 rounded-3xl animate-pulse" />
+            <div key={i} className="h-48 bg-neutral-50 rounded-3xl animate-pulse" />
           ))
         ) : interests?.length === 0 ? (
           <Card className="border-dashed border-2 py-12 flex flex-col items-center justify-center text-center">
@@ -89,70 +95,85 @@ export const FounderInterestPage: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Card isHoverable className="overflow-hidden">
-                <div className="flex flex-col md:flex-row md:items-center">
-                  <div className="p-8 flex-1 border-b md:border-b-0 md:border-r border-neutral-100">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-neutral-900 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+              <Card isHoverable className="overflow-hidden border-neutral-100 shadow-sm hover:shadow-xl transition-all duration-500">
+                <div className="flex flex-col lg:flex-row lg:items-stretch">
+                  <div className="p-6 md:p-8 flex-1 border-b lg:border-b-0 lg:border-r border-neutral-100">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-14 h-14 bg-neutral-900 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-neutral-900/10">
                         {interest.user.name[0]}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl font-bold text-neutral-900">{interest.user.name}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-neutral-900 leading-tight">{interest.user.name}</h3>
                           <ShieldCheck className="w-4 h-4 text-blue-500" />
                         </div>
-                        <p className="text-sm text-neutral-500">{interest.user.email}</p>
+                        <p className="text-sm font-medium text-neutral-500 flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5" />
+                          {interest.user.email}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                      <div className="flex items-center gap-2 text-sm text-neutral-600">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                      <div className="flex items-center gap-3 p-3 bg-neutral-50/50 rounded-xl border border-neutral-100">
                         <Building2 className="w-4 h-4 text-neutral-400" />
-                        <span>Interested in <strong>{interest.startup.name}</strong></span>
+                        <span className="text-sm text-neutral-600">Interested in <strong className="text-neutral-900">{interest.startup.name}</strong></span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-neutral-600">
+                      <div className="flex items-center gap-3 p-3 bg-neutral-50/50 rounded-xl border border-neutral-100">
                         <Calendar className="w-4 h-4 text-neutral-400" />
-                        <span>{new Date(interest.created_at).toLocaleDateString()}</span>
+                        <span className="text-sm text-neutral-600 font-medium">{new Date(interest.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
 
                     {interest.message && (
-                      <div className="mt-6 p-4 bg-neutral-50 rounded-2xl flex gap-3 italic text-sm text-neutral-600 border border-neutral-100">
-                        <MessageSquare className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
-                        "{interest.message}"
+                      <div className="mt-6 p-5 bg-neutral-900/5 rounded-2xl flex gap-4 italic text-sm text-neutral-700 border border-neutral-100 relative group overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-neutral-900/10" />
+                        <MessageSquare className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
+                        <p className="leading-relaxed">"{interest.message}"</p>
                       </div>
                     )}
                   </div>
 
-                  <div className="p-8 bg-neutral-50/30 md:w-80 flex flex-col justify-center gap-4">
+                  <div className="p-6 md:p-8 bg-neutral-50/40 lg:w-80 flex flex-col justify-center gap-4">
                     <div className="mb-2">
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-2">Current Status</p>
+                      <p className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-3">Current Status</p>
                       {getStatusBadge(interest.status)}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {interest.status === 'interested' && (
                         <Button 
+                          isLoading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'discovery'}
                           onClick={() => updateStatusMutation.mutate({ id: interest.id, status: 'discovery' })}
-                          className="w-full gap-2"
+                          className="w-full gap-2 h-11 rounded-xl font-bold shadow-lg shadow-neutral-900/5"
                         >
                           <Check className="w-4 h-4" /> Move to Discovery
                         </Button>
                       )}
                       {interest.status === 'discovery' && (
                         <Button 
+                          isLoading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'funding'}
                           onClick={() => updateStatusMutation.mutate({ id: interest.id, status: 'funding' })}
-                          className="w-full gap-2 bg-purple-600 hover:bg-purple-700"
+                          className="w-full gap-2 h-11 rounded-xl bg-purple-600 hover:bg-purple-700 font-bold shadow-lg shadow-purple-200"
                         >
                           <TrendingUp className="w-4 h-4" /> Schedule Funding Call
                         </Button>
                       )}
-                      {interest.status !== 'closed' && (
-                        <Button variant="outline" className="w-full gap-2 text-red-600 border-red-100 hover:bg-red-50">
+                      {interest.status !== 'closed' && interest.status !== 'declined' && (
+                        <Button 
+                          variant="outline" 
+                          isLoading={updateStatusMutation.isPending && updateStatusMutation.variables?.status === 'declined'}
+                          onClick={() => updateStatusMutation.mutate({ id: interest.id, status: 'declined' })}
+                          className="w-full gap-2 h-11 rounded-xl text-red-600 border-red-100 hover:bg-red-50 font-bold"
+                        >
                           <X className="w-4 h-4" /> Decline Interest
                         </Button>
                       )}
-                      <Button variant="ghost" className="w-full gap-2 text-neutral-500">
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => handleMessageInvestor(interest.user.email, interest.startup.name)}
+                        className="w-full gap-2 h-11 rounded-xl text-neutral-600 hover:bg-neutral-100 font-bold"
+                      >
                         <Mail className="w-4 h-4" /> Message Investor
                       </Button>
                     </div>

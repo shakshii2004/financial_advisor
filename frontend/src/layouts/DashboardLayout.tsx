@@ -39,7 +39,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto w-full"
+            className="pt-0 p-4 md:p-8 lg:p-10 max-w-[1600px] mx-auto w-full"
           >
             {children}
           </motion.div>

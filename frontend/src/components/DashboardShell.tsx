@@ -19,7 +19,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   children,
 }) => {
   return (
-    <div className="px-8 py-10 lg:px-12 lg:py-12">
+    <div className="px-4 pt-0 pb-10 md:px-8 md:pt-0 md:pb-12 lg:px-12 lg:pt-0 lg:pb-16">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
