@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   Search,
   Briefcase,
+  Calendar,
   Loader2
 } from 'lucide-react';
 import { cn, extractErrorMessage } from '../lib/utils';
@@ -26,16 +27,9 @@ import { Skeleton } from '../components/Skeleton';
 import { Modal } from '../components/Modal';
 
 const revenueSchema = z.object({
-  category: z.string({
-    required_error: "Please specify the revenue source",
-    invalid_type_error: "Please specify the revenue source",
-  }).min(1, 'Please specify the revenue source'),
-  amount: z.string({
-    required_error: "Please enter an amount",
-  }).min(1, 'Please enter an amount'),
-  date: z.string({
-    required_error: "Please select a date",
-  }).min(1, "Please select a date"),
+  category: z.string({ error: "Please specify the revenue source" }).min(1, 'Please specify the revenue source'),
+  amount: z.string({ error: "Please enter an amount" }).min(1, 'Please enter an amount'),
+  date: z.string({ error: "Please select a date" }).min(1, "Please select a date"),
   description: z.string().optional(),
   currency: z.enum(['USD', 'INR']),
 });
