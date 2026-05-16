@@ -265,6 +265,15 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Breakdown & Insights */}
         <div className="space-y-8">
+          {/* Minimalist Quote Card - Moved to Top of Sidebar */}
+          <Card className="bg-neutral-900 text-white border-none relative overflow-hidden group">
+            <CardContent className="p-10 flex flex-col justify-center items-center text-center">
+              <p className="text-xl md:text-2xl font-medium leading-relaxed tracking-tight text-white">
+                "The best way to predict the future is to <span className="text-indigo-300 italic">create it</span>."
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Revenue Breakdown */}
           <Card>
             <CardHeader title="Revenue Mix" subtitle="Distribution of income sources by category." />
@@ -291,15 +300,6 @@ export const AnalyticsPage: React.FC = () => {
                   <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">No revenue data</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Minimalist Quote Card */}
-          <Card className="bg-neutral-900 text-white border-none relative overflow-hidden group">
-            <CardContent className="p-10 flex flex-col justify-center items-center text-center">
-              <p className="text-xl md:text-2xl font-medium leading-relaxed tracking-tight text-white">
-                "The best way to predict the future is to <span className="text-indigo-300 italic">create it</span>."
-              </p>
             </CardContent>
           </Card>
         </div>

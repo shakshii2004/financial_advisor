@@ -114,7 +114,15 @@ export const FounderInterestPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                    {interest.message && (
+                      <div className="mb-6 p-5 bg-neutral-900/5 rounded-2xl flex gap-4 italic text-sm text-neutral-700 border border-neutral-100 relative group overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-neutral-900/10" />
+                        <MessageSquare className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
+                        <p className="leading-relaxed">"{interest.message}"</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-center gap-3 p-3 bg-neutral-50/50 rounded-xl border border-neutral-100">
                         <Building2 className="w-4 h-4 text-neutral-400" />
                         <span className="text-sm text-neutral-600">Interested in <strong className="text-neutral-900">{interest.startup.name}</strong></span>
@@ -124,14 +132,6 @@ export const FounderInterestPage: React.FC = () => {
                         <span className="text-sm text-neutral-600 font-medium">{new Date(interest.created_at).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
-
-                    {interest.message && (
-                      <div className="mt-6 p-5 bg-neutral-900/5 rounded-2xl flex gap-4 italic text-sm text-neutral-700 border border-neutral-100 relative group overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-neutral-900/10" />
-                        <MessageSquare className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
-                        <p className="leading-relaxed">"{interest.message}"</p>
-                      </div>
-                    )}
                   </div>
 
                   <div className="p-6 md:p-8 bg-neutral-50/40 lg:w-80 flex flex-col justify-center gap-4">
