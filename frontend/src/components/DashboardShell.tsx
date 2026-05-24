@@ -19,17 +19,17 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   children,
 }) => {
   return (
-    <div className="px-4 pt-0 pb-10 md:px-8 md:pt-0 md:pb-12 lg:px-12 lg:pt-0 lg:pb-16">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+    <div className="w-full pt-4 pb-10 md:pb-12 lg:pb-16">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 md:mb-12">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
           className="space-y-2"
         >
-          <h1 className="text-4xl font-bold tracking-tight text-neutral-900">{title}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-900">{title}</h1>
           {subtitle && (
-            <p className="text-lg text-neutral-500 leading-relaxed max-w-2xl">{subtitle}</p>
+            <p className="text-base md:text-lg text-neutral-500 leading-relaxed max-w-2xl">{subtitle}</p>
           )}
         </motion.div>
         
@@ -38,6 +38,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
+            className="shrink-0"
           >
             {action}
           </motion.div>
