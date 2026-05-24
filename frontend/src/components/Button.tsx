@@ -28,14 +28,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const variants = {
       primary:
-        'bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm border border-transparent',
+        'bg-neutral-900 text-white hover:bg-neutral-800 shadow-sm border border-transparent transition-all duration-200',
       secondary:
-        'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-transparent',
+        'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-transparent transition-all duration-200',
       outline:
-        'bg-transparent border border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300',
+        'bg-transparent border border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200',
       ghost:
-        'bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900',
-      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-100',
+        'bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-200',
+      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-100 transition-all duration-200',
     };
 
     const sizes = {
@@ -54,8 +54,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         disabled={isDisabled}
-        whileHover={!isDisabled ? { y: -1 } : {}}
+        whileHover={!isDisabled ? { y: -2, scale: 1.02, filter: 'brightness(1.05)' } : {}}
         whileTap={!isDisabled ? { scale: 0.98, y: 0 } : {}}
+        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
         className={cn(
           'inline-flex items-center justify-center font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 whitespace-nowrap cursor-pointer',
           variants[variant],
