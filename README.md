@@ -1,11 +1,16 @@
-# FounderFlow
+# 🚀 FounderFlow
 
-A production-grade SaaS platform for startup financial management and investor relations.
+<div align="left">
+
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20App-0066CC?style=for-the-badge&logo=vercel&logoColor=white)](https://founderflow-cyan.vercel.app)
+[![API Status](https://img.shields.io/badge/API-Active-059669?style=for-the-badge&logo=laravel&logoColor=white)](https://founderflow.onrender.com)
+[![Tech Stack](https://img.shields.io/badge/Stack-React%20%2B%20Laravel-neutral-900?style=for-the-badge)](https://github.com/Akhand0ps/fin)
+
+</div>
+
+### A production-grade SaaS platform for startup financial management and investor relations.
 
 FounderFlow provides startup founders with a complete toolkit to manage their finances, track burn rate and runway, and engage with investors through a structured deal pipeline. Investors use the platform to discover startups, express interest, and track their funding pipeline in real time.
-
-**Frontend:** https://founderflow-cyan.vercel.app  
-**API:** https://founderflow.onrender.com
 
 ---
 
